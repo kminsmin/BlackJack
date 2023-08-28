@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using static BlackJack.Program;
 
 namespace BlackJack
@@ -59,7 +60,7 @@ namespace BlackJack
         public abstract class Hand
         {
             public List<Card> handCards;
-            public static Card DrawCard(ref List<Card> deck)
+            public virtual Card DrawCard(ref List<Card> deck)
             {
                 int cardIndex = new Random().Next(deck.Count);
                 Card card = deck[cardIndex];
@@ -83,7 +84,7 @@ namespace BlackJack
         {
             public int score;
 
-            public static Card DrawCard(ref List<Card> deck)
+            public override Card DrawCard(ref List<Card> deck)
             {
                 int cardIndex = new Random().Next(deck.Count);
                 Card card = deck[cardIndex];
@@ -115,8 +116,8 @@ namespace BlackJack
             //플레이어 패 뽑기
             Console.WriteLine("플레이어의 카드를 덱에서 뽑습니다.");
             Player player = new Player();
-            player.handCards.Add(Player.DrawCard(ref deck.cards));
-            player.handCards.Add(Player.DrawCard(ref deck.cards));
+            player.handCards.Add(new Player().DrawCard(ref deck.cards));
+            player.handCards.Add(new Player().DrawCard(ref deck.cards));
             Console.WriteLine($"당신의 카드는 {player.handCards[0].cardName}, {player.handCards[1].cardName} 입니다.");
             foreach (Card card in player.handCards)
             {
@@ -128,8 +129,8 @@ namespace BlackJack
             //딜러 패 뽑기
             Console.WriteLine("딜러의 카드를 덱에서 뽑습니다.");
             Dealer dealer = new Dealer();
-            dealer.handCards.Add(Dealer.DrawCard(ref deck.cards));
-            dealer.handCards.Add(Dealer.DrawCard(ref deck.cards));
+            dealer.handCards.Add(new Dealer().DrawCard(ref deck.cards));
+            dealer.handCards.Add(new Dealer().DrawCard(ref deck.cards));
             Console.WriteLine($"딜러의 카드 중 하나는 {dealer.handCards[0].cardName} 입니다.");
             foreach (Card card in dealer.handCards)
             {
@@ -147,12 +148,24 @@ namespace BlackJack
                     {
                         Console.WriteLine("플레이어의 카드를 덱에서 뽑습니다.");
                         Thread.Sleep(1000);
-                        player.handCards.Add(Player.DrawCard(ref deck.cards));
+                        player.handCards.Add(new Player().DrawCard(ref deck.cards));
                         player.score += player.handCards[player.handCards.Count - 1].cardValue;
                         if (player.score > 21)
                         {
-                            Console.WriteLine("Busted!");
-                            break;
+                            foreach (Card card in player.handCards)
+                            {
+                                if (card.cardValue == 11)
+                                {
+                                    card.cardValue = 1;
+                                    player.score -= 10;
+                                    break;
+                                }
+                            }
+                            if (player.score > 21)
+                            {
+                                Console.WriteLine("Busted!");
+                                break;
+                            }
                         }
                         else if (player.score == 21)
                         {
@@ -170,12 +183,50 @@ namespace BlackJack
                     {
                         Console.WriteLine("잘못된 입력입니다!");
                     }
-
-
-                }
-                
-
+                }                
             }
+            Console.WriteLine($"딜러의 나머지 카드는 {dealer.handCards[1].cardName} 입니다.");
+            Console.WriteLine($"딜러의 점수는 {dealer.score} 입니다.\n");
+            Thread.Sleep(1000);
+            while (dealer.score < 17)
+            {
+                Console.WriteLine("딜러의 점수가 17보다 낮으므로 딜러가 Hit 합니다.");
+                dealer.handCards.Add(new Player().DrawCard(ref deck.cards));
+                dealer.score += dealer.handCards[dealer.handCards.Count - 1].cardValue;
+                if (dealer.score > 21)
+                {
+                    foreach (Card card in dealer.handCards)
+                    {
+                        if (card.cardValue == 11)
+                        {
+                            card.cardValue = 1;
+                            dealer.score -= 10;
+                            break;
+                        }
+                    }
+                    if (player.score > 21)
+                    {
+                        Console.WriteLine("Busted!");
+                        break;
+                    }
+                }
+                else if (player.score == 21)
+                {
+                    Console.WriteLine("BlackJack!");
+                    break;
+                }
+                Console.WriteLine($"딜러의 점수는 {dealer.score} 입니다.\n");
+            }
+
+            if (dealer.score > player.score || player.score > 21)
+            {
+                Console.WriteLine("패배했습니다...");
+            }
+            else if (dealer.score < player.score)
+            {
+                Console.WriteLine("승리했습니다!");
+            }
+            else Console.WriteLine("무승부입니다.");
         }
     }
 }
