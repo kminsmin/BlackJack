@@ -204,13 +204,13 @@ namespace BlackJack
                             break;
                         }
                     }
-                    if (player.score > 21)
+                    if (dealer.score > 21)
                     {
                         Console.WriteLine("Busted!");
                         break;
                     }
                 }
-                else if (player.score == 21)
+                else if (dealer.score == 21)
                 {
                     Console.WriteLine("BlackJack!");
                     break;
@@ -218,11 +218,11 @@ namespace BlackJack
                 Console.WriteLine($"딜러의 점수는 {dealer.score} 입니다.\n");
             }
 
-            if (dealer.score > player.score || player.score > 21)
+            if ((dealer.score > player.score)&&dealer.score <= 21 || player.score > 21)
             {
                 Console.WriteLine("패배했습니다...");
             }
-            else if (dealer.score < player.score)
+            else if (dealer.score < player.score || dealer.score > 21)
             {
                 Console.WriteLine("승리했습니다!");
             }
