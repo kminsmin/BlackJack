@@ -1,4 +1,7 @@
-﻿namespace BlackJack
+﻿using System.Threading;
+using static BlackJack.Program;
+
+namespace BlackJack
 {
     internal class Program
     {
@@ -53,6 +56,48 @@
             }
         }
 
+        public abstract class Hand
+        {
+            public List<Card> handCards;
+            public static Card DrawCard(ref List<Card> deck)
+            {
+                int cardIndex = new Random().Next(deck.Count);
+                Card card = deck[cardIndex];
+                deck.Remove(deck[cardIndex]);
+                Console.WriteLine($"뽑은 카드는 {card.cardName} 입니다.");
+                return card;
+            }
+        }
+
+        public class Player : Hand
+        {
+            public int score;
+            public Player()
+            {
+                handCards = new List<Card>();
+                score = 0;
+            }
+        }
+
+        public class Dealer : Hand
+        {
+            public int score;
+
+            public static Card DrawCard(ref List<Card> deck)
+            {
+                int cardIndex = new Random().Next(deck.Count);
+                Card card = deck[cardIndex];
+                deck.Remove(deck[cardIndex]);
+                return card;
+            }
+
+            public Dealer()
+            {
+                handCards = new List<Card>();
+                score = 0;
+            }
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("블랙잭에 오신 걸 환영합니다.");
@@ -66,9 +111,71 @@
             deck.cards = Deck.LoadDeck(deck.cards, "Diamond");
             deck.cards = Deck.LoadDeck(deck.cards, "Club");
             deck.cards = Deck.LoadDeck(deck.cards, "Heart");
+
+            //플레이어 패 뽑기
             Console.WriteLine("플레이어의 카드를 덱에서 뽑습니다.");
-            Console.WriteLine(deck.cards[25].cardName);
+            Player player = new Player();
+            player.handCards.Add(Player.DrawCard(ref deck.cards));
+            player.handCards.Add(Player.DrawCard(ref deck.cards));
+            Console.WriteLine($"당신의 카드는 {player.handCards[0].cardName}, {player.handCards[1].cardName} 입니다.");
+            foreach (Card card in player.handCards)
+            {
+                player.score += card.cardValue;
+            }
+            Console.WriteLine($"현재 플레이어의 점수는 {player.score}점 입니다.\n");
             Thread.Sleep(1000);
+
+            //딜러 패 뽑기
+            Console.WriteLine("딜러의 카드를 덱에서 뽑습니다.");
+            Dealer dealer = new Dealer();
+            dealer.handCards.Add(Dealer.DrawCard(ref deck.cards));
+            dealer.handCards.Add(Dealer.DrawCard(ref deck.cards));
+            Console.WriteLine($"딜러의 카드 중 하나는 {dealer.handCards[0].cardName} 입니다.");
+            foreach (Card card in dealer.handCards)
+            {
+                dealer.score += card.cardValue;
+            }
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                if (player.score < 21)
+                {
+                    Console.Write("Hit 하시겠습니까 (y/n) ? : ");
+                    string playerChoice = Console.ReadLine();
+                    if (playerChoice == "y")
+                    {
+                        Console.WriteLine("플레이어의 카드를 덱에서 뽑습니다.");
+                        Thread.Sleep(1000);
+                        player.handCards.Add(Player.DrawCard(ref deck.cards));
+                        player.score += player.handCards[player.handCards.Count - 1].cardValue;
+                        if (player.score > 21)
+                        {
+                            Console.WriteLine("Busted!");
+                            break;
+                        }
+                        else if (player.score == 21)
+                        {
+                            Console.WriteLine("BlackJack!");
+                            break;
+                        }
+                        Console.WriteLine($"현재 플레이어의 점수는 {player.score}점 입니다.\n");
+                    }
+                    else if (playerChoice == "n")
+                    {
+                        Console.WriteLine("플레이어가 Stay 합니다.");
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("잘못된 입력입니다!");
+                    }
+
+
+                }
+                
+
+            }
         }
     }
 }
